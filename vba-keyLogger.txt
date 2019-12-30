@@ -1,0 +1,121 @@
+Option Explicit
+
+'================================================================
+'Copyright <2019> <notkitasima@gmail.com>
+
+'Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+'The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+'THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+'================================================================
+'PERSONAL.XLSB
+'  ThisWorkbook
+'
+'PowerShell
+'  Get-Content  C:\<somePath>\ExcelInputLog.txt  -wait  -tail  0
+'================================================================
+
+
+Dim WithEvents xlApp As Application
+Private Sub Workbook_Open()
+   Set xlApp = Application
+End Sub
+Private Sub xlApp_WorkbookAfterSave(ByVal Wb As Workbook, ByVal Success As Boolean)
+    Application.StatusBar = "PERSONALxls Reloading..."
+    Call az001_reloadPERSONALxlsb
+    Debug.Print "reload"
+End Sub
+
+Private Sub xlApp_WorkbookOpen(ByVal Wb As Workbook)
+    On Error Resume Next
+    Application.StatusBar = False
+    If Not Wb Is ThisWorkbook Then
+        Debug.Print "<<" & Wb.Name & ">> is Open"
+    End If
+End Sub
+Private Sub xlApp_SheetChange(ByVal sh As Object, ByVal Target As Range)
+
+    Debug.Print "--------------------------------"
+    Debug.Print "TimeStamp:" & Format(Now, "yyyy/mm/dd HH:MM:SS")
+    Debug.Print "Book:" & ActiveWorkbook.Name
+    Debug.Print "Sheet:" & sh.Name
+    Debug.Print "Cell:" & Target.Address(RowAbsolute:=False, ColumnAbsolute:=False)
+    
+    Dim Debug_c As Variant
+    Dim Debug_loopBreakCount As Integer
+    For Each Debug_c In Range(Target.Address)
+        Debug_loopBreakCount = Debug_loopBreakCount + 1
+        If Debug_loopBreakCount > 2 Then
+            Exit Sub
+            'MsgBox ("If Excel Frieze:Ctrl + Pause/Break")
+        End If
+        If Debug_c.Value <> "" Then
+            On Error Resume Next
+            Debug.Print "Value:" & Range(Target.Address).Value
+        Else
+            Debug.Print "Value:Empty"
+        End If
+    Next
+    
+    'ExcelInputLog
+    On Error Resume Next
+    
+    Dim datFile As String
+'================================================================
+    '====Path====Log.txt
+    'If use Log.txt only 1 log.
+    'datFile = "C:\<somePath>\ExcelInputLog.txt"
+    'Else use Log.txt "Any" excel changes.
+    'datFile = ActiveWorkbook.Path & "\ExcelInputLog.txt"
+'================================================================
+ 
+    Open datFile For Append As #1
+    
+    Print #1, "--------------------------------"
+    Print #1, "TimeStamp:" & Format(Now, "yyyy/mm/dd HH:MM:SS")
+    Print #1, "Book:" & ActiveWorkbook.Name
+    Print #1, "Sheet:" & sh.Name
+    Print #1, "Cell:" & Target.Address(RowAbsolute:=False, ColumnAbsolute:=False)
+    
+    Dim c As Variant
+    Dim loopBreakCount As Integer
+    For Each c In Range(Target.Address)
+        loopBreakCount = loopBreakCount + 1
+        If loopBreakCount > 2 Then
+            Exit Sub
+            'MsgBox ("If Excel Frieze:Ctrl + Pause/Break")
+        End If
+        If c.Value <> "" Then
+            On Error Resume Next
+            Print #1, "Value:" & Range(Target.Address).Value
+        Else
+            Print #1, "Value:Empty"
+        End If
+    Next
+    
+    Close #1
+    
+    
+End Sub
+
+
+
+
+
+
+'================================================================
+'Develop PERSONAL.XLSB
+'reload Macro
+
+'Sub az001_reloadPERSONALxlsb()
+'
+'    'ThisWorkbook.Save
+'    Application.OnTime Now, "OpenBook"
+'    ThisWorkbook.Close
+'
+'End Sub
+'Private Sub OpenBook()
+'    ThisWorkbook.Activate
+'End Sub
+'================================================================
