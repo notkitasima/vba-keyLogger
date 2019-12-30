@@ -105,10 +105,11 @@ End Sub
 
 
 '================================================================
+'http://akashi-keirin.hatenablog.com/entry/2018/01/13/131818
 'Develop PERSONAL.XLSB
 'reload Macro
 
-'Sub az001_reloadPERSONALxlsb()
+'Sub reloadPERSONALxlsb()
 '
 '    'ThisWorkbook.Save
 '    Application.OnTime Now, "OpenBook"
